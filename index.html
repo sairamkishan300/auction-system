@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cultural Auction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════════
+   DESIGN SYSTEM — DARK GOLD CEREMONIAL THEME
+═══════════════════════════════════════════════ */
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121c;
+      --surface2: #1a1a2e;
+      --gold: #f0c040;
+      --gold-light: #ffd970;
+      --gold-dim: #a07820;
+      --red: #e83030;
+      --green: #28c87a;
+      --cyan: #30d0e8;
+      --text: #e8e0d0;
+      --text-dim: #8a8070;
+      --border: rgba(240, 192, 64, 0.18);
+      --glow: 0 0 20px rgba(240, 192, 64, 0.25);
+      --r: 12px;
+      --font-head: 'Cinzel Decorative', serif;
+      --font-ui: 'Rajdhani', sans-serif;
+      --font-mono: 'Orbitron', monospace;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 16px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated starfield background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 20% 30%, rgba(240, 192, 64, 0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 10%, rgba(255, 255, 255, 0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 70%, rgba(240, 192, 64, 0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 60%, rgba(240, 192, 64, 0.2) 0%, transparent 100%),
+        radial-gradient(2px 2px at 35% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 100%),
+        radial-gradient(1px 1px at 65% 85%, rgba(240, 192, 64, 0.35) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── SCREENS ── */
+    .screen {
+      display: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ════════════════════════════
+   SCREEN 1 — LOBBY
+════════════════════════════ */
+    #screen-lobby {
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 48px 24px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(240, 192, 64, 0.08) 0%, transparent 60%);
+    }
+
+    .logo-area {
+      text-align: center;
+    }
+
+    .logo-area h1 {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      color: var(--gold);
+      text-shadow: 0 0 40px rgba(240, 192, 64, 0.5), 0 2px 0 rgba(0, 0, 0, 0.8);
+      letter-spacing: 2px;
+      line-height: 1.2;
+    }
+
+    .logo-area .subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--gold-dim);
+      letter-spacing: 8px;
+      margin-top: 8px;
+      text-transform: uppercase;
+    }
+
+    .divider {
+      width: 200px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 8px auto;
+    }
+
+    /* Status card */
+    .status-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 24px 32px;
+      text-align: center;
+      box-shadow: var(--glow);
+      min-width: 280px;
+    }
+
+    .status-card .label {
+      font-size: 0.75rem;
+      letter-spacing: 4px;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+    }
+
+    .status-card .value {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      color: var(--gold);
+      margin: 4px 0;
+    }
+
+    /* Team budgets grid */
+    .teams-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .team-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .team-chip.maxed {
+      border-color: var(--red);
+      opacity: 0.6;
+    }
+
+    .team-chip .t-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      margin-bottom: 6px;
+    }
+
+    .team-chip .t-budget {
+      font-family: var(--font-mono);
+      font-size: 1.3rem;
+      color: var(--cyan);
+    }
+
+    .team-chip .t-sets {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .team-chip .maxed-badge {
+      display: none;
+      font-size: 0.65rem;
+      color: var(--red);
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+
+    .team-chip.maxed .maxed-badge {
+      display: block;
+    }
+
+    /* Big action button */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 60%, var(--gold-light) 100%);
+      color: #0a0a0f;
+      border: none;
+      border-radius: var(--r);
+      font-family: var(--font-head);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      padding: 18px 48px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 24px rgba(240, 192, 64, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(240, 192, 64, 0.5);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--gold-dim);
+      border-radius: var(--r);
+      font-family: var(--font-ui);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(240, 192, 64, 0.1);
+      border-color: var(--gold);
+    }
+
+    .loading-msg {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--gold-dim);
+      letter-spacing: 3px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.4
+      }
+    }
+
+    /* ════════════════════════════
+   SCREEN 2 — AUCTION STAGE
+════════════════════════════ */
+    #screen-auction {
+      flex-direction: column;
+      padding: 0;
+      background: radial-gradient(ellipse at 50% -10%, rgba(240, 192, 64, 0.06) 0%, transparent 55%);
+    }
+
+    /* Top bar */
+    .auction-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .auction-title {
+      font-family: var(--font-head);
+      font-size: 1rem;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+
+    .set-counter {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--gold-dim);
+      letter-spacing: 2px;
+    }
+
+    /* Team budget mini-row */
+    .budget-row {
+      display: flex;
+      gap: 12px;
+      padding: 10px 28px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .budget-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 6px 16px;
+      white-space: nowrap;
+      transition: border-color 0.2s;
+    }
+
+    .budget-pill.maxed {
+      border-color: rgba(232, 48, 48, 0.4);
+      opacity: 0.55;
+    }
+
+    .budget-pill .bp-name {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+
+    .budget-pill .bp-coins {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--cyan);
+    }
+
+    /* Cards stage */
+    .cards-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    /* Student card */
+    .student-card {
+      width: 200px;
+      height: 280px;
+      perspective: 800px;
+      cursor: default;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
+    }
+
+    .student-card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    /* Card Back */
+    .card-back {
+      background: var(--surface2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-back .card-bg-pattern {
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(240, 192, 64, 0.03) 0px, rgba(240, 192, 64, 0.03) 1px, transparent 1px, transparent 12px),
+        repeating-linear-gradient(-45deg, rgba(240, 192, 64, 0.03) 0px, rgba(240, 192, 64, 0.03) 1px, transparent 1px, transparent 12px);
+    }
+
+    .card-back .card-icon {
+      font-size: 2.4rem;
+      position: relative;
+    }
+
+    .card-back .card-set-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--gold-dim);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      position: relative;
+    }
+
+    /* Top 3 skills on card back */
+    .card-skills {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      position: relative;
+    }
+
+    .card-skill-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-skill-name {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      min-width: 70px;
+    }
+
+    .card-skill-bar {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .card-skill-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+      border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+
+    .card-skill-score {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--gold);
+      min-width: 24px;
+      text-align: right;
+    }
+
+    .card-note {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      font-style: italic;
+      text-align: center;
+      position: relative;
+      line-height: 1.3;
+    }
+
+    /* Card Front (revealed) */
+    .card-front {
+      transform: rotateY(180deg);
+      background: linear-gradient(145deg, #1a2a1a, #0f1f0f);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(40, 200, 122, 0.2);
+      border-color: rgba(40, 200, 122, 0.3);
+    }
+
+    .card-front .sold-badge {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 4px;
+      color: var(--green);
+      text-transform: uppercase;
+      border: 1px solid rgba(40, 200, 122, 0.3);
+      padding: 3px 10px;
+      border-radius: 4px;
+    }
+
+    .card-front .student-name-reveal {
+      font-family: var(--font-head);
+      font-size: 1rem;
+      color: var(--gold-light);
+      text-align: center;
+      line-height: 1.3;
+      text-shadow: 0 0 20px rgba(240, 192, 64, 0.4);
+    }
+
+    .card-front .student-batch {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+    }
+
+    .card-front .won-by {
+      font-size: 0.75rem;
+      color: var(--green);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    /* ── BIDDING PANEL ── */
+    .bidding-panel {
+      background: rgba(10, 10, 15, 0.95);
+      border-top: 1px solid var(--border);
+      padding: 20px 28px;
+      backdrop-filter: blur(16px);
+    }
+
+    .bidding-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Timer */
+    .timer-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 80px;
+    }
+
+    .timer-ring {
+      position: relative;
+      width: 64px;
+      height: 64px;
+    }
+
+    .timer-ring svg {
+      transform: rotate(-90deg);
+      width: 64px;
+      height: 64px;
+    }
+
+    .timer-ring .ring-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 4;
+    }
+
+    .timer-ring .ring-progress {
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 4;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear, stroke 0.3s;
+    }
+
+    .timer-ring .ring-progress.urgent {
+      stroke: var(--red);
+    }
+
+    .timer-number {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .timer-number.urgent {
+      color: var(--red);
+    }
+
+    .timer-label {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+
+    /* Current highest bid */
+    .current-bid-display {
+      text-align: center;
+      min-width: 160px;
+    }
+
+    .bid-label {
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .bid-amount {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--gold-light);
+      text-shadow: 0 0 20px rgba(240, 192, 64, 0.4);
+      transition: color 0.2s;
+    }
+
+    .bid-team {
+      font-size: 0.8rem;
+      color: var(--cyan);
+      margin-top: 2px;
+      min-height: 1.1em;
+    }
+
+    /* Team bid inputs */
+    .bids-container {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .team-bid-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .team-bid-name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    .team-bid-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .bid-input {
+      width: 100px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .bid-input:focus {
+      border-color: var(--gold);
+    }
+
+    .bid-input:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .bid-submit {
+      background: var(--gold-dim);
+      color: #0a0a0f;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-ui);
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .bid-submit:hover {
+      background: var(--gold);
+    }
+
+    .bid-submit:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* ── MODAL: Sold Announcement ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .sold-modal {
+      background: var(--surface2);
+      border: 1px solid var(--gold-dim);
+      border-radius: 20px;
+      padding: 48px 56px;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(240, 192, 64, 0.2);
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-width: 480px;
+      width: 90%;
+    }
+
+    @keyframes popIn {
+      from {
+        transform: scale(0.7);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .sold-modal .hammer {
+      font-size: 3rem;
+      margin-bottom: 8px;
+    }
+
+    .sold-modal h2 {
+      font-family: var(--font-head);
+      font-size: 1.8rem;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+
+    .sold-modal .winner-team {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: var(--cyan);
+      letter-spacing: 3px;
+      margin-bottom: 4px;
+    }
+
+    .sold-modal .winning-amount {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      color: var(--gold-light);
+      font-weight: 900;
+    }
+
+    .sold-modal .student-list {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sold-modal .student-list span {
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    /* ── SCREEN 3 — COMPLETE ── */
+    #screen-complete {
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+      gap: 32px;
+      background: radial-gradient(ellipse at 50% 50%, rgba(40, 200, 122, 0.06) 0%, transparent 60%);
+    }
+
+    .complete-title {
+      font-family: var(--font-head);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      color: var(--gold);
+      text-align: center;
+      text-shadow: 0 0 40px rgba(240, 192, 64, 0.4);
+    }
+
+    .results-table-wrap {
+      width: 100%;
+      max-width: 900px;
+      overflow-x: auto;
+    }
+
+    table.results-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .results-table th {
+      background: var(--surface2);
+      color: var(--gold-dim);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .results-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      vertical-align: top;
+    }
+
+    .results-table tr:hover td {
+      background: rgba(240, 192, 64, 0.03);
+    }
+
+    .tag-team {
+      display: inline-block;
+      background: rgba(48, 208, 232, 0.1);
+      color: var(--cyan);
+      border-radius: 6px;
+      padding: 2px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 0.9rem;
+      color: var(--text);
+      transition: transform 0.3s, opacity 0.3s;
+      opacity: 0;
+      z-index: 9999;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--surface);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--gold-dim);
+      border-radius: 3px;
+    }
+
+    /* ── Saving indicator ── */
+    .saving-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--gold-dim);
+      font-family: var(--font-mono);
+      letter-spacing: 2px;
+      padding: 8px;
+      min-height: 32px;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--gold-dim);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    .spinner.active {
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════
+     SCREEN 1 — LOBBY
+═══════════════════════════════ -->
+  <section id="screen-lobby" class="screen active">
+    <div class="logo-area">
+      <h1>Cultural Auction</h1>
+      <div class="divider"></div>
+      <p class="subtitle">College Fest · Talent Bidding System</p>
+    </div>
+
+    <div id="lobby-status" class="loading-msg">INITIALIZING · · ·</div>
+
+    <div id="lobby-stats" style="display:none; text-align:center;">
+      <div class="status-card">
+        <div class="label">Students Loaded</div>
+        <div class="value" id="stat-students">—</div>
+        <div class="label" style="margin-top:4px;" id="stat-sets-info">—</div>
+      </div>
+    </div>
+
+    <div id="teams-lobby" class="teams-grid"></div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <button class="btn-primary" id="btn-start" disabled>⚔ START AUCTION</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════
+     SCREEN 2 — AUCTION
+═══════════════════════════════ -->
+  <section id="screen-auction" class="screen">
+    <!-- Top bar -->
+    <div class="auction-topbar">
+      <div>
+        <div class="auction-title">🏆 Cultural Auction</div>
+        <div class="set-counter" id="set-counter">Set 0 / 0</div>
+      </div>
+      <div class="saving-row">
+        <div class="spinner" id="save-spinner"></div>
+        <span id="save-label"></span>
+      </div>
+    </div>
+
+    <!-- Budget row -->
+    <div class="budget-row" id="budget-row"></div>
+
+    <!-- Cards -->
+    <div class="cards-stage" id="cards-stage"></div>
+
+    <!-- Bidding panel -->
+    <div class="bidding-panel">
+      <div class="bidding-inner">
+        <!-- Timer -->
+        <div class="timer-wrap">
+          <div class="timer-ring">
+            <svg viewBox="0 0 64 64">
+              <circle class="ring-bg" cx="32" cy="32" r="28" />
+              <circle class="ring-progress" id="ring-progress" cx="32" cy="32" r="28" stroke-dasharray="175.9"
+                stroke-dashoffset="0" />
+            </svg>
+            <div class="timer-number" id="timer-number">—</div>
+          </div>
+          <div class="timer-label">TIMER</div>
+        </div>
+
+        <!-- Current bid display -->
+        <div class="current-bid-display">
+          <div class="bid-label">Highest Bid</div>
+          <div class="bid-amount" id="current-bid-amount">0</div>
+          <div class="bid-team" id="current-bid-team">No bids yet</div>
+        </div>
+
+        <!-- Per-team bid inputs -->
+        <div class="bids-container" id="bids-container"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════
+     SCREEN 3 — COMPLETE
+═══════════════════════════════ -->
+  <section id="screen-complete" class="screen">
+    <div class="complete-title">🎊 Auction Complete!</div>
+    <p style="color:var(--text-dim); font-size:0.9rem; letter-spacing:2px; text-align:center;">
+      All results have been saved to Google Sheets
+    </p>
+    <div class="results-table-wrap">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Set #</th>
+            <th>Team</th>
+            <th>Winning Bid</th>
+            <th>Students</th>
+          </tr>
+        </thead>
+        <tbody id="results-tbody"></tbody>
+      </table>
+    </div>
+    <button class="btn-secondary" onclick="location.reload()">↺ Start New Auction</button>
+  </section>
+
+  <!-- Sold Modal -->
+  <div class="modal-overlay" id="sold-modal">
+    <div class="sold-modal">
+      <div class="hammer">🔨</div>
+      <h2>SOLD!</h2>
+      <div class="winner-team" id="modal-team">—</div>
+      <div class="winning-amount" id="modal-amount">—</div>
+      <div class="student-list" id="modal-students"></div>
+      <button class="btn-primary" style="margin-top:24px; font-size:0.9rem; padding:14px 36px;" id="modal-next-btn">Next
+        Set →</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ═══════════════════════════════════════════════
+    //  AUCTION ENGINE
+    // ═══════════════════════════════════════════════
+
+    // Replace with your deployed Apps Script Web App URL
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYp272dkTYV1gQeQdtNvFQ6iRT15MkPw39oaswItOuWJcAgyUeynxinZRNNbbrvEA_/exec";
+
+    // ── State ────────────────────────────────────────
+    const state = {
+      config: null,
+      sets: [],
+      teamStates: {},   // { teamId: { budget, setsWon, maxed } }
+      currentSetIdx: 0,
+      currentBid: 0,
+      currentBidTeam: null,
+      timerInterval: null,
+      timerLeft: 0,
+      timerRunning: false,
+      auctionResults: [],
+      inputFocused: false,
+    };
+
+    // ── GAS API calls ─────────────────────────────────
+    async function gasCall(action, data = {}) {
+      const body = JSON.stringify({ action, ...data });
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        body,
+        headers: { "Content-Type": "text/plain" },   // GAS requires text/plain for POST
+      });
+      return res.json();
+    }
+
+    // ── Screen routing ────────────────────────────────
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    // ── Toast ──────────────────────────────────────────
+    function showToast(msg, duration = 3000) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), duration);
+    }
+
+    // ── LOBBY: Init ────────────────────────────────────
+    async function initLobby() {
+      const statusEl = document.getElementById("lobby-status");
+      statusEl.textContent = "LOADING DATA FROM GOOGLE SHEETS · · ·";
+
+      try {
+        const [cfgRes, studRes] = await Promise.all([
+          gasCall("getConfig"),
+          gasCall("getStudents"),
+        ]);
+
+        if (cfgRes.error || studRes.error) throw new Error(cfgRes.error || studRes.error);
+
+        state.config = cfgRes;
+        state.sets = studRes.sets;
+
+        // Init team states
+        cfgRes.teams.forEach(t => {
+          state.teamStates[t.id] = {
+            name: t.name,
+            budget: cfgRes.teamBudget,
+            setsWon: 0,
+            maxed: false,
+          };
+        });
+
+        // Update UI
+        statusEl.style.display = "none";
+        document.getElementById("lobby-stats").style.display = "block";
+        document.getElementById("stat-students").textContent = studRes.students.length;
+        document.getElementById("stat-sets-info").textContent =
+          `${state.sets.length} Sets · ${cfgRes.studentsPerSet} students/set`;
+
+        renderTeamsLobby();
+        document.getElementById("btn-start").disabled = false;
+
+      } catch (err) {
+        statusEl.textContent = "⚠ Failed to load: " + err.message;
+        console.error(err);
+      }
+    }
+
+    function renderTeamsLobby() {
+      const grid = document.getElementById("teams-lobby");
+      grid.innerHTML = "";
+      state.config.teams.forEach(t => {
+        const ts = state.teamStates[t.id];
+        grid.innerHTML += `
+      <div class="team-chip" id="lobby-chip-${t.id}">
+        <div class="t-name">${t.name}</div>
+        <div class="t-budget">💰 ${ts.budget}</div>
+        <div class="t-sets">Sets won: 0 / ${state.config.maxSetsPerTeam}</div>
+        <div class="maxed-badge">⛔ MAX REACHED</div>
+      </div>`;
+      });
+    }
+
+    // ── START AUCTION ──────────────────────────────────
+    document.getElementById("btn-start").addEventListener("click", () => {
+      showScreen("screen-auction");
+      buildBudgetRow();
+      buildBidInputs();
+      loadSet(0);
+    });
+
+    // ── Budget row in auction screen ───────────────────
+    function buildBudgetRow() {
+      const row = document.getElementById("budget-row");
+      row.innerHTML = "";
+      state.config.teams.forEach(t => {
+        row.innerHTML += `
+      <div class="budget-pill" id="pill-${t.id}">
+        <span class="bp-name">${t.name}</span>
+        <span class="bp-coins" id="pill-coins-${t.id}">💰 ${state.teamStates[t.id].budget}</span>
+      </div>`;
+      });
+    }
+
+    function refreshBudgetRow() {
+      state.config.teams.forEach(t => {
+        const ts = state.teamStates[t.id];
+        document.getElementById(`pill-coins-${t.id}`).textContent = `💰 ${ts.budget}`;
+        const pill = document.getElementById(`pill-${t.id}`);
+        pill.classList.toggle("maxed", ts.maxed);
+      });
+    }
+
+    // ── Bid inputs ──────────────────────────────────────
+    function buildBidInputs() {
+      const container = document.getElementById("bids-container");
+      container.innerHTML = "";
+      state.config.teams.forEach(t => {
+        container.innerHTML += `
+      <div class="team-bid-block" id="bid-block-${t.id}">
+        <div class="team-bid-name">${t.name}</div>
+        <div class="team-bid-row">
+          <input type="number" min="1" class="bid-input" id="bid-input-${t.id}"
+            placeholder="Bid…" onkeydown="handleBidKey(event, '${t.id}')"
+            onfocus="state.inputFocused=true" onblur="state.inputFocused=false"/>
+          <button class="bid-submit" id="bid-btn-${t.id}"
+            onclick="placeBid('${t.id}')">BID</button>
+        </div>
+      </div>`;
+      });
+    }
+
+    function handleBidKey(e, teamId) {
+      if (e.key === "Enter") placeBid(teamId);
+    }
+
+    // ── Load a set ─────────────────────────────────────
+    function loadSet(idx) {
+      stopTimer();
+      state.currentSetIdx = idx;
+      state.currentBid = 0;
+      state.currentBidTeam = null;
+
+      const set = state.sets[idx];
+      const total = state.sets.length;
+
+      document.getElementById("set-counter").textContent =
+        `Set ${idx + 1} / ${total}`;
+
+      document.getElementById("current-bid-amount").textContent = "0";
+      document.getElementById("current-bid-team").textContent = "No bids yet";
+      document.getElementById("timer-number").textContent = "—";
+      document.getElementById("timer-number").classList.remove("urgent");
+      document.getElementById("ring-progress").classList.remove("urgent");
+      setRingProgress(1);
+
+      renderCards(set);
+      resetBidInputs();
+      refreshTeamBidBlocks();
+    }
+
+    // ── Render cards (back face shown, skills visible) ──
+    function renderCards(set) {
+      const stage = document.getElementById("cards-stage");
+      stage.innerHTML = "";
+
+      set.students.forEach((student, i) => {
+        const topSkills = student.topSkills.slice(0, 3);
+        const skillsHtml = topSkills.map(s => `
+      <div class="card-skill-row">
+        <span class="card-skill-name">${s.label}</span>
+        <div class="card-skill-bar">
+          <div class="card-skill-fill" style="width:${(s.score / 5) * 100}%"></div>
+        </div>
+        <span class="card-skill-score">${s.score}</span>
+      </div>`).join("");
+
+        const noteHtml = student.note
+          ? `<div class="card-note">"${student.note}"</div>` : "";
+
+        stage.innerHTML += `
+      <div class="student-card" id="scard-${i}">
+        <div class="card-inner">
+          <div class="card-face card-back">
+            <div class="card-bg-pattern"></div>
+            <div class="card-icon">🎭</div>
+            <div class="card-set-label">Student ${i + 1}</div>
+            <div class="card-skills">${skillsHtml}</div>
+            ${noteHtml}
+          </div>
+          <div class="card-face card-front" id="scard-front-${i}">
+            <div class="sold-badge">SOLD</div>
+            <div class="student-name-reveal">${student.name}</div>
+            <div class="student-batch">${student.batch}</div>
+            <div class="won-by" id="wonby-${i}"></div>
+          </div>
+        </div>
+      </div>`;
+      });
+    }
+
+    // ── Place a bid ────────────────────────────────────
+    function placeBid(teamId) {
+      const ts = state.teamStates[teamId];
+      if (ts.maxed) { showToast(`⛔ ${ts.name} has reached the maximum players!`); return; }
+
+      const inputEl = document.getElementById(`bid-input-${teamId}`);
+      const amount = parseInt(inputEl.value);
+
+      if (!amount || amount <= 0) { showToast("Enter a valid bid amount"); return; }
+      if (amount <= state.currentBid) {
+        showToast(`Bid must be higher than current: ${state.currentBid}`);
+        return;
+      }
+      if (amount > ts.budget) {
+        showToast(`${ts.name} only has ${ts.budget} coins!`);
+        return;
+      }
+
+      // Pause timer while typing (it was paused by onfocus; resume now on submit)
+      stopTimer();
+
+      state.currentBid = amount;
+      state.currentBidTeam = teamId;
+
+      document.getElementById("current-bid-amount").textContent = amount;
+      document.getElementById("current-bid-team").textContent = `⚑ ${ts.name}`;
+      document.getElementById("current-bid-amount").style.color = "var(--gold-light)";
+
+      inputEl.value = "";
+      showToast(`${ts.name} bid ${amount} coins`);
+
+      // Start / restart timer
+      startTimer();
+    }
+
+    // ── Timer ──────────────────────────────────────────
+    function startTimer() {
+      state.timerLeft = state.config.bidTimerSeconds;
+      state.timerRunning = true;
+      updateTimerUI();
+
+      state.timerInterval = setInterval(() => {
+        // Pause if any input is focused (typing in progress)
+        if (state.inputFocused) return;
+
+        state.timerLeft--;
+        updateTimerUI();
+
+        if (state.timerLeft <= 0) {
+          stopTimer();
+          endSet();
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(state.timerInterval);
+      state.timerRunning = false;
+    }
+
+    function updateTimerUI() {
+      const t = state.timerLeft;
+      const max = state.config.bidTimerSeconds;
+      const urgent = t <= 10;
+
+      document.getElementById("timer-number").textContent = t;
+      document.getElementById("timer-number").classList.toggle("urgent", urgent);
+      document.getElementById("ring-progress").classList.toggle("urgent", urgent);
+      setRingProgress(t / max);
+    }
+
+    function setRingProgress(fraction) {
+      const circumference = 175.9;
+      const offset = circumference * (1 - fraction);
+      document.getElementById("ring-progress").style.strokeDashoffset = offset;
+    }
+
+    // ── End set: determine winner ──────────────────────
+    async function endSet() {
+      if (!state.currentBidTeam) {
+        // No bids placed — skip set
+        showToast("No bids placed. Skipping set.");
+        proceedToNextSet();
+        return;
+      }
+
+      const winTeamId = state.currentBidTeam;
+      const winAmount = state.currentBid;
+      const ts = state.teamStates[winTeamId];
+      const set = state.sets[state.currentSetIdx];
+
+      // Deduct budget
+      ts.budget -= winAmount;
+      ts.setsWon += 1;
+
+      // Check max sets
+      if (ts.setsWon >= state.config.maxSetsPerTeam) {
+        ts.maxed = true;
+      }
+
+      refreshBudgetRow();
+
+      // Flip cards with stagger
+      set.students.forEach((_, i) => {
+        setTimeout(() => {
+          document.getElementById(`scard-${i}`).classList.add("flipped");
+          document.getElementById(`wonby-${i}`).textContent = `Won by ${ts.name}`;
+        }, i * 300);
+      });
+
+      // Record result
+      const result = {
+        setNumber: state.currentSetIdx + 1,
+        teamId: winTeamId,
+        teamName: ts.name,
+        winningBid: winAmount,
+        studentNames: set.students.map(s => s.name),
+      };
+      state.auctionResults.push(result);
+
+      // Save to Google Sheets
+      setSaving(true);
+      try {
+        await gasCall("saveResult", { data: result });
+      } catch (e) {
+        showToast("⚠ Could not save to Sheets. Check connection.");
+      }
+      setSaving(false);
+
+      // Show modal
+      showSoldModal(result);
+    }
+
+    function setSaving(active) {
+      document.getElementById("save-spinner").classList.toggle("active", active);
+      document.getElementById("save-label").textContent = active ? "SAVING TO SHEETS…" : "";
+    }
+
+    // ── Sold modal ─────────────────────────────────────
+    function showSoldModal(result) {
+      document.getElementById("modal-team").textContent = result.teamName;
+      document.getElementById("modal-amount").textContent = `💰 ${result.winningBid} coins`;
+      const sl = document.getElementById("modal-students");
+      sl.innerHTML = result.studentNames.map(n => `<span>👤 ${n}</span>`).join("");
+      document.getElementById("sold-modal").classList.add("active");
+    }
+
+    document.getElementById("modal-next-btn").addEventListener("click", () => {
+      document.getElementById("sold-modal").classList.remove("active");
+      proceedToNextSet();
+    });
+
+    function proceedToNextSet() {
+      const nextIdx = state.currentSetIdx + 1;
+      if (nextIdx >= state.sets.length) {
+        showComplete();
+      } else {
+        loadSet(nextIdx);
+      }
+    }
+
+    // ── Team bid block visibility ──────────────────────
+    function refreshTeamBidBlocks() {
+      state.config.teams.forEach(t => {
+        const ts = state.teamStates[t.id];
+        const input = document.getElementById(`bid-input-${t.id}`);
+        const btn = document.getElementById(`bid-btn-${t.id}`);
+        input.disabled = ts.maxed;
+        btn.disabled = ts.maxed;
+        if (ts.maxed) input.placeholder = "MAXED";
+      });
+    }
+
+    function resetBidInputs() {
+      state.config.teams.forEach(t => {
+        const el = document.getElementById(`bid-input-${t.id}`);
+        if (el) el.value = "";
+      });
+    }
+
+    // ── Complete screen ────────────────────────────────
+    function showComplete() {
+      showScreen("screen-complete");
+      const tbody = document.getElementById("results-tbody");
+      tbody.innerHTML = state.auctionResults.map(r => `
+    <tr>
+      <td><b style="color:var(--gold);">Set ${r.setNumber}</b></td>
+      <td><span class="tag-team">${r.teamName}</span></td>
+      <td style="font-family:var(--font-mono);color:var(--gold-light);">💰 ${r.winningBid}</td>
+      <td style="color:var(--text-dim);">${r.studentNames.join(", ")}</td>
+    </tr>`).join("");
+    }
+
+    // ── Boot ──────────────────────────────────────────
+    initLobby();
+  </script>
+</body>
+
+</html>
