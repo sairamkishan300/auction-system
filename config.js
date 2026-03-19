@@ -84,7 +84,7 @@ const CONFIG = {
   // ----------------------------------------------------------
   // BIDDING TIMER
   // ----------------------------------------------------------
-  BID_TIMER_SECONDS: 10,   // Countdown after the first bid on a set
+  BID_TIMER_SECONDS: 15,   // Countdown after the first bid on a set
 
   // ----------------------------------------------------------
   // RESULTS SHEET COLUMNS  (written by the app after each bid)
